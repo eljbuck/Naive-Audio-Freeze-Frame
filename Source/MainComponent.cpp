@@ -2,7 +2,7 @@
 
 //==============================================================================
 MainComponent::MainComponent() 
-    : state(Stopped),
+    : state(Unprimed),
       openButton("Open"),
       playButton("Play"),
       stopButton("Stop"),
@@ -10,7 +10,7 @@ MainComponent::MainComponent()
       circularBufferSize(0),
       currentBufferReadIndex(0),
       currentBufferWriteIndex(0),
-      freezeDuration(1)
+      freezeDuration(0.5)
 {
     // Make sure you set the size of the component after
     // you add any child components.
@@ -34,7 +34,7 @@ MainComponent::MainComponent()
     
     playButton.onClick = [this] { playButtonClicked(); };
     playButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
-    playButton.setEnabled(true);
+    playButton.setEnabled(false);
     addAndMakeVisible(&playButton);
     
     stopButton.onClick = [this] { stopButtonClicked(); };
@@ -112,6 +112,10 @@ void MainComponent::transportStateChanged(TransportState newState)
         state = newState;
         
         switch (state) {
+            case Unprimed:
+                stopButton.setEnabled(false);
+                playButton.setEnabled(false);
+                freezeButton.setEnabled(false);
             case Stopped:
                 stopButton.setEnabled(false);
                 playButton.setEnabled(true);

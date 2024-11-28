@@ -2,7 +2,7 @@
 
 ## About
 
-What would it mean to freeze frame audio in a meaningful way? Given that our ears are spectral analyzers, a 'meaningful' auditory freeze frame would probably preserve the harmonic content of some audio at a moment in time. This demands some notion of instantaneous frequency, which is explicitly defined across time (this hang-up is probably why such a popular concept for video has not been extended to audio). Still, I think we all can imagine what an audio freeze frame might do for various sound sources, which suggests that such a tool is possible.
+What would it mean to freeze frame audio in a meaningful way? Given that our ears are spectral analyzers, a 'meaningful' auditory freeze frame would probably preserve the harmonic content of some audio at a moment in time. This demands some notion of instantaneous frequency, but regretably, frequency is explicitly defined across time (this hang-up is probably why such a popular concept for video has not been extended to audio). Still, I think we all can imagine what an audio freeze frame might do for various sound sources, which suggests that such a tool is possible.
 
 ## Motivations
 

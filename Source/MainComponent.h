@@ -27,6 +27,7 @@ public:
 private:
     enum TransportState
     {
+        Unprimed,
         Stopped,
         Starting,
         Stopping,
