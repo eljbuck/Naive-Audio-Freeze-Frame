@@ -10,7 +10,7 @@ MainComponent::MainComponent()
       circularBufferSize(0),
       currentBufferReadIndex(0),
       currentBufferWriteIndex(0),
-      freezeDuration(0.5)
+      freezeDuration(0.1)
 {
     // Make sure you set the size of the component after
     // you add any child components.
@@ -107,39 +107,38 @@ void MainComponent::freezeButtonClicked()
 
 void MainComponent::transportStateChanged(TransportState newState)
 {
-    if (newState != state)
-    {
-        state = newState;
-        
-        switch (state) {
-            case Unprimed:
-                stopButton.setEnabled(false);
-                playButton.setEnabled(false);
-                freezeButton.setEnabled(false);
-            case Stopped:
-                stopButton.setEnabled(false);
-                playButton.setEnabled(true);
-                freezeButton.setEnabled(false);
-                transport.setPosition(0);
-                break;
-            case Starting:
-                stopButton.setEnabled(true);
-                freezeButton.setEnabled(true);
-                playButton.setEnabled(false);
-                transport.start();
-                break;
-            case Stopping:
-                stopButton.setEnabled(false);
-                freezeButton.setEnabled(false);
-                playButton.setEnabled(true);
-                transport.stop();
-                break;
-            case Freezing:
-                stopButton.setEnabled(true);
-                playButton.setEnabled(true);
-                freezeButton.setEnabled(false);
-                break;
-        }
+    if (newState == state) return;
+    
+    state = newState;
+    
+    switch (state) {
+        case Unprimed:
+            stopButton.setEnabled(false);
+            playButton.setEnabled(false);
+            freezeButton.setEnabled(false);
+        case Stopped:
+            stopButton.setEnabled(false);
+            playButton.setEnabled(true);
+            freezeButton.setEnabled(false);
+            transport.setPosition(0);
+            break;
+        case Starting:
+            stopButton.setEnabled(true);
+            freezeButton.setEnabled(true);
+            playButton.setEnabled(false);
+            transport.start();
+            break;
+        case Stopping:
+            stopButton.setEnabled(false);
+            freezeButton.setEnabled(false);
+            playButton.setEnabled(true);
+            transport.stop();
+            break;
+        case Freezing:
+            stopButton.setEnabled(true);
+            playButton.setEnabled(true);
+            freezeButton.setEnabled(false);
+            break;
     }
 }
 

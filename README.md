@@ -6,7 +6,7 @@ What would it mean to freeze frame audio in a meaningful way? Given that our ear
 
 ## Motivations
 
-Before getting too deep, why on Earth might we be interested in freeze framing audio? This is not immediately obvious, but here are two reasons that are musically relevant me.
+Before getting too deep, why on Earth might we be interested in freeze framing audio? This is not immediately obvious, but here are two reasons that are musically relevant to me.
 
 1. A tool in aiding music transcription
 - Solo transcription is a very important aspect of learning jazz vocabulary. Though jazz is not an incredibly old genre, its conception certainly predates modern recording technology and thus older records tend to have lower quality. As such, it can sometimes be difficult to hear a note that a soloist plays, especially when they are playing fast. A tool that can freeze audio while preserving its harmonic content would be very helpful in identifying these notes.
