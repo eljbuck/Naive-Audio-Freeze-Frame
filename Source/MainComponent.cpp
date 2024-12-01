@@ -10,7 +10,9 @@ MainComponent::MainComponent()
       circularBufferSize(0),
       currentBufferReadIndex(0),
       currentBufferWriteIndex(0),
+      forecast(0),
       thawing(false),
+      forecasting(false),
       freezeDuration(3.0)
 {
     // Make sure you set the size of the component after
@@ -142,9 +144,9 @@ void MainComponent::transportStateChanged(TransportState newState)
             stopButton.setEnabled(true);
             playButton.setEnabled(true);
             freezeButton.setEnabled(false);
-            
+            forecasting = true;
             // ensure freeze happens from start of circle buffer
-            currentBufferReadIndex = (currentBufferWriteIndex + 1) % circularBufferSize;
+//            currentBufferReadIndex = (currentBufferWriteIndex + 1) % circularBufferSize;
             break;
     }
 }
@@ -173,7 +175,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     }
     
     // read next numsamples from the circular buffer
-    if (state == Freezing || thawing) {
+    if (!forecasting && (state == Freezing || thawing)) {
         
         // for all audio channels, for each sample
         for (int channel = 0; channel < buffer->getNumChannels(); ++channel)
@@ -191,6 +193,12 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     } 
     else // read next numsamples from the file into the buffer, write them to the circle buffer
     {
+        if (forecasting && forecast > circularBufferSize / 2) {
+            currentBufferReadIndex = (currentBufferWriteIndex + 1) % circularBufferSize;
+            forecasting = false;
+            forecast = 0;
+            return;
+        }
         // read from file
         transport.getNextAudioBlock(bufferToFill);
 
@@ -203,6 +211,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
                 circularBuffer.setSample(channel, writeIndex, buffer->getSample(channel, sample));
             }
         }
+        if (forecasting) forecast += numSamples;
         currentBufferWriteIndex = (currentBufferWriteIndex + numSamples) % circularBufferSize;
     }
 }

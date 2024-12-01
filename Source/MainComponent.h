@@ -57,7 +57,9 @@ private:
     int circularBufferSize;
     int currentBufferReadIndex;
     int currentBufferWriteIndex;
+    int forecast;
     bool thawing;
+    bool forecasting;
     double freezeDuration;
     //==============================================================================
     // Your private member variables go here...
