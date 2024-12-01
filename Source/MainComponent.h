@@ -41,6 +41,8 @@ private:
     void stopButtonClicked();
     void freezeButtonClicked();
     void transportStateChanged(TransportState newState);
+    int getBufferPos(int start, int offset);
+    int getBufferDist(int from, int to);
     
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> playSource;
@@ -55,6 +57,7 @@ private:
     int circularBufferSize;
     int currentBufferReadIndex;
     int currentBufferWriteIndex;
+    bool thawing;
     double freezeDuration;
     //==============================================================================
     // Your private member variables go here...

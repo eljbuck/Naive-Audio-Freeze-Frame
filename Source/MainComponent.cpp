@@ -10,7 +10,8 @@ MainComponent::MainComponent()
       circularBufferSize(0),
       currentBufferReadIndex(0),
       currentBufferWriteIndex(0),
-      freezeDuration(0.1)
+      thawing(false),
+      freezeDuration(3.0)
 {
     // Make sure you set the size of the component after
     // you add any child components.
@@ -48,7 +49,6 @@ MainComponent::MainComponent()
     addAndMakeVisible(&freezeButton);
     
     formatManager.registerBasicFormats();
-    
 }
 
 MainComponent::~MainComponent()
@@ -109,6 +109,7 @@ void MainComponent::transportStateChanged(TransportState newState)
 {
     if (newState == state) return;
     
+    TransportState oldState = state;
     state = newState;
     
     switch (state) {
@@ -123,6 +124,9 @@ void MainComponent::transportStateChanged(TransportState newState)
             transport.setPosition(0);
             break;
         case Starting:
+            if (oldState == Freezing) {
+                thawing = true;
+            }
             stopButton.setEnabled(true);
             freezeButton.setEnabled(true);
             playButton.setEnabled(false);
@@ -138,6 +142,9 @@ void MainComponent::transportStateChanged(TransportState newState)
             stopButton.setEnabled(true);
             playButton.setEnabled(true);
             freezeButton.setEnabled(false);
+            
+            // ensure freeze happens from start of circle buffer
+            currentBufferReadIndex = (currentBufferWriteIndex + 1) % circularBufferSize;
             break;
     }
 }
@@ -146,24 +153,48 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 {
     auto* buffer = bufferToFill.buffer;
     int numSamples = bufferToFill.numSamples;
+    
+    if (thawing) {
+        int samplesLeft = getBufferDist(currentBufferReadIndex, currentBufferWriteIndex);
+        
+        // if we are on the last numSamples samples in our circle buffer
+        if (samplesLeft < numSamples) {
+            // set the read pos in the file based on remaining samples in the circular buffer
+            long long lastPos = transport.getNextReadPosition();
+            long long curPos = lastPos - samplesLeft;
+            transport.setNextReadPosition(curPos);
 
-    if (state == Freezing)
-    {
+            // set the new write pos to the circular bufer for the next time we read in more samples
+            currentBufferWriteIndex = getBufferPos(currentBufferWriteIndex, -samplesLeft);
+            
+            thawing = false;
+
+        }
+    }
+    
+    // read next numsamples from the circular buffer
+    if (state == Freezing || thawing) {
+        
+        // for all audio channels, for each sample
         for (int channel = 0; channel < buffer->getNumChannels(); ++channel)
         {
             for (int sample = 0; sample < numSamples; ++sample)
             {
+                // read the sample value out of the circular buffer
                 int readIndex = (currentBufferReadIndex + sample) % circularBufferSize;
                 float sampleValue = circularBuffer.getSample(channel, readIndex);
                 buffer->setSample(channel, sample, sampleValue);
             }
         }
+    
         currentBufferReadIndex = (currentBufferReadIndex + numSamples) % circularBufferSize;
-    }
-    else
+    } 
+    else // read next numsamples from the file into the buffer, write them to the circle buffer
     {
+        // read from file
         transport.getNextAudioBlock(bufferToFill);
 
+        // write to circle buffer
         for (int channel = 0; channel < buffer->getNumChannels(); ++channel)
         {
             for (int sample = 0; sample < numSamples; ++sample)
@@ -174,6 +205,22 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         }
         currentBufferWriteIndex = (currentBufferWriteIndex + numSamples) % circularBufferSize;
     }
+}
+
+
+
+// return the positive index at an arbitrary positive or negative offset
+// from an arbitrary start index
+int MainComponent::getBufferPos(int start, int offset) {
+    int absolutePos = start + offset;
+    int wrappedPos = absolutePos % circularBufferSize;
+    return (wrappedPos < 0) ? wrappedPos + circularBufferSize : wrappedPos;
+}
+
+// distance in the forward direction from one circular buffer index to another
+int MainComponent::getBufferDist(int from, int to) {
+    int dist = to - from;
+    return (dist < 0) ? dist + circularBufferSize : dist;
 }
 
 void MainComponent::releaseResources()
